@@ -1,9 +1,10 @@
-from flask import Flask, send_file
+from flask import Flask, send_file, redirect
 import pandas as pd
 import folium
 import requests
 from notion_client import Client
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -14,10 +15,10 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # 🎨 일차별 색상 설정
 day_colors = {
-    "1일차": "orange",
-    "2일차": "blue",
-    "3일차": "green",
-    "4일차": "red"
+    "1일차": "yellow",
+    "2일차": "red",
+    "3일차": "orenge",
+    "4일차": "blue"
 }
 
 # 📍 지오코딩 함수
@@ -44,8 +45,7 @@ def fetch_data():
         rows.append([name, kind, day])
     return pd.DataFrame(rows, columns=["이름", "종류", "일차"])
 
-# 🌐 루트 경로에서 지도 생성
-@app.route("/")
+# 🗺️ 지도 생성 함수
 def generate_map():
     df = fetch_data()
     m = folium.Map(location=[33.38, 126.53], zoom_start=10)
@@ -80,6 +80,17 @@ def generate_map():
             ).add_to(m)
 
     m.save("notion_jeju_map.html")
+
+# 🔁 지도 재생성 + 캐시 우회용 redirect
+@app.route("/map")
+def trigger_and_redirect():
+    generate_map()
+    ts = datetime.utcnow().timestamp()
+    return redirect(f"/map-static?t={ts}", code=302)
+
+# 🌐 정적 지도 서빙 (Notion Embed용)
+@app.route("/map-static")
+def serve_map():
     return send_file("notion_jeju_map.html")
 
 if __name__ == '__main__':
