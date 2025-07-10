@@ -81,17 +81,43 @@ def generate_map():
 
     m.save("notion_jeju_map.html")
 
-# 🔁 지도 재생성 + 캐시 우회용 redirect
+# 🗺️ 지도 생성 및 HTML 반환 함수
 @app.route("/map")
-def trigger_and_redirect():
-    generate_map()
-    ts = datetime.utcnow().timestamp()
-    return redirect(f"/map-static?t={ts}", code=302)
+def generate_and_return_map():
+    df = fetch_data()
+    m = folium.Map(location=[33.38, 126.53], zoom_start=10)
 
-# 🌐 정적 지도 서빙 (Notion Embed용)
-@app.route("/map-static")
-def serve_map():
-    return send_file("notion_jeju_map.html")
+    for _, row in df.iterrows():
+        lat, lng = geocode_place(row["이름"])
+        if lat and lng:
+            popup_html = f"<b>{row['이름']}</b><br><i>{row['종류']}</i>"
+            day_number = row['일차'].replace("일차", "")
+            color = day_colors.get(row['일차'], '#555')
+            folium.Marker(
+                location=[lat, lng],
+                popup=folium.Popup(popup_html, max_width=250),
+                icon=folium.DivIcon(
+                    icon_size=(28, 28),
+                    icon_anchor=(14, 14),
+                    html=f"""
+                    <div style="
+                        background-color: {color};
+                        color: white;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border-radius: 50%;
+                        width: 28px;
+                        height: 28px;
+                        text-align: center;
+                        line-height: 28px;">
+                        {day_number}
+                    </div>
+                    """
+                )
+            ).add_to(m)
+
+    return m.get_root().render()
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
