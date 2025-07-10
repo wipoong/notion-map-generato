@@ -15,10 +15,10 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # 🎨 일차별 색상 설정
 day_colors = {
-    "1일차": "yellow",
+    "1일차": "gold",
     "2일차": "red",
-    "3일차": "orenge",
-    "4일차": "blue"
+    "3일차": "orange",
+    "4일차": "skyblue"
 }
 
 # 📍 지오코딩 함수
