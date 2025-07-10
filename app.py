@@ -36,7 +36,7 @@ def fetch_data():
     rows = []
     for page in results['results']:
         props = page['properties']
-        name = props['과면']['title'][0]['plain_text'] if props['과면']['title'] else ''
+        name = props['이름']['title'][0]['plain_text'] if props['이름']['title'] else ''
         kind = props['종류']['select']['name'] if props['종류']['select'] else ''
         day = props['일차']['select']['name'] if props['일차']['select'] else ''
         if not day:
@@ -83,4 +83,5 @@ def generate_map():
     return send_file("notion_jeju_map.html")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
